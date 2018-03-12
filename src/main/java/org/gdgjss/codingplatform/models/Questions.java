@@ -25,7 +25,7 @@ public class Questions {
 	
 	private String outputfilepath;
 	private String inputfilepath;
-	
+	private double timeLimit;
 	
 	
 	public int getQuesid() {
@@ -82,9 +82,12 @@ public class Questions {
 	public void setInputfilepath(String inputfilepath) {
 		this.inputfilepath = inputfilepath;
 	}
-	
 
-	
+	public double getTimeLimit() {
+		return timeLimit;
+	}
 
-
+	public void setTimeLimit(double timeLimit) {
+		this.timeLimit = timeLimit;
+	}
 }

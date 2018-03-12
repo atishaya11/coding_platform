@@ -71,50 +71,54 @@
 						<form:form modelAttribute="question" action="addques" method="post">
 
 							<div class="input-field col s6">
-								<form:input type="text" id="first_name" path="quesid"></form:input>
+								<form:input type="text" id="first_name" path="quesid"/>
 								<label for="question id">enter question id:</label>
 							</div>
 
 							<div class="input-field col s6">
-								<form:input type="text" id="name" path="title" ></form:input> <label
+								<form:input type="text" id="name" path="title" /> <label
 									for="question id">enter title:</label>
 							</div>
 
 							<div class="input-field col s6">
-								<form:textarea id="detail" path="detail" ></form:textarea>
+								<form:textarea id="detail" path="detail" />
 								<label for="question id">enter detail:</label>
 							</div>
 
 							<div class="input-field col s6">
-								<form:textarea id="constraints" path="constraints" ></form:textarea>
+								<form:textarea id="constraints" path="constraints" />
 								<label for="question id">enter constraints:</label>
 							</div>
 
 							<div class="input-field col s6">
-								<form:textarea id="inputformat" path="inputformat" ></form:textarea>
+								<form:textarea id="inputformat" path="inputformat" />
 								<label for="question id">input format:</label>
 							</div>
 							<div class="input-field col s6">
-								<form:textarea id="outputformat" path="outputformat" required="required"></form:textarea>
+								<form:textarea id="outputformat" path="outputformat" required="required"/>
 								<label for="question id">output format:</label>
 							</div>
 
 							<div class="input-field col s6">
-								<form:textarea id="sampletestcase" path="sampletestcase" required="required"></form:textarea>
+								<form:textarea id="sampletestcase" path="sampletestcase" required="required"/>
 								<label for="question id">enter sample test case:</label>
 							</div>
 							<div class="input-field col s6">
 								<form:input type="text" id="outputfilepath" path="outputfilepath"
-									required="required"></form:input> <label for="question id">enter output
+									required="required"/> <label for="question id">enter output
 									file path:</label>
 							</div>
 
 							<div class="input-field col s10">
 								<form:input type="text" id="inputfilepath" path="inputfilepath"
-									required="required"></form:input> <label for="question id">enter input
+									required="required"/> <label for="question id">enter input
 									file path:</label>
 							</div>
-
+							<div class="input-field col s10">
+								<form:input type="text" id="inputfilepath" path="timeLimit"
+											required="required"/> <label for="question id">Enter
+								time limit:</label>
+							</div>
 							<div align="center">
 								<button type="submit" class="waves-effect waves-light btn blue"
 									style="margin-bottom: 0;">Submit</button>

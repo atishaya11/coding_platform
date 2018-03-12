@@ -24,6 +24,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +55,7 @@ public class AllController {
     @RequestMapping(value = "/index", method = RequestMethod.GET)
     public ModelAndView indexpage() {
 
-        ModelAndView model = new ModelAndView("/index.jsp");
+        ModelAndView model = new ModelAndView("/index");
         return model;
     }
 
@@ -69,7 +70,7 @@ public class AllController {
     @RequestMapping(value = "/logout", method = RequestMethod.GET)
     public ModelAndView LogoutController(HttpSession httpSession) {
         httpSession.invalidate();
-        ModelAndView model = new ModelAndView("/index.jsp");
+        ModelAndView model = new ModelAndView("/index");
         model.addObject("invalid", "successfully logged out");
         return model;
     }
@@ -104,7 +105,7 @@ public class AllController {
                 model.addObject("invalid", "Invalid Details, Please Sign Up or try again.");
             }
         } else {
-            model = new ModelAndView("/index.jsp");
+            model = new ModelAndView("/index");
             model.addObject("norecord", "no record found");
         }
         session.close();
@@ -730,7 +731,7 @@ public class AllController {
             model.addObject("TeamName", team_name);
             System.out.println(Question);
         } else {
-            model = new ModelAndView("/index.jsp");
+            model = new ModelAndView("/index");
             model.addObject("invalid", "log in first to continue");
         }
 
@@ -785,7 +786,7 @@ public class AllController {
             model.addObject("ques", ques);
 
         } else {
-            model = new ModelAndView("/index.jsp");
+            model = new ModelAndView("/index");
             model.addObject("invalid", "LOG IN FIRST TO CONTINUE");
         }
         return model;
@@ -880,70 +881,107 @@ public class AllController {
             System.out.println("length of input file--->>>> " + y.length());
             System.out.println("length of code file--->>>> " + code.length());
 
-
-
-            String urlParameters = "source=" + urlencode + "&compilerId=" + getCompilerId(lang) + "&input=" + y;
+            HttpURLConnection con = null;
             final String ACCESS_TOKEN = "851cfc890debe6bbc751579eca823c46";
             final String END_POINT = "http://850903b0.compilers.sphere-engine.com";
 
-            URL obj = new URL(END_POINT + "/api/v3/submissions" + "?access_token=" + ACCESS_TOKEN);
-            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-
-            // add request header
-            con.setRequestMethod("POST");
-            con.setRequestProperty("ENCODING", "UTF-8");
-            con.setRequestProperty("User-Agent", "chrome");
-            con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-
-
-            System.out.println("Input file--- \n" + y);
-
-            con.setDoOutput(true);
-            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-            wr.writeBytes(urlParameters);
-            wr.flush();
-            wr.close();
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String respLine = in.readLine();
-            System.out.println("JSON response --->>>");
-            System.out.println(respLine);
-            JSONObject jsonObject = new JSONObject(respLine);
-            String submissionId = (String)jsonObject.get("id");
-
             String message = "", stdOut = "", status = "", htmlOutput = "";
+            String submissionId = null;
+            BufferedReader in;
+            String respLine;
+            JSONObject jsonObject;
             try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                String urlParameters = "source=" + urlencode + "&compilerId=" + getCompilerId(lang) + "&input=" + y;
+                
+
+                URL obj = new URL(END_POINT + "/api/v3/submissions" + "?access_token=" + ACCESS_TOKEN);
+                con = (HttpURLConnection) obj.openConnection();
+
+                // add request header
+                con.setRequestMethod("POST");
+                con.setRequestProperty("ENCODING", "UTF-8");
+                con.setRequestProperty("User-Agent", "chrome");
+                con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+
+
+                System.out.println("Input file--- \n" + y);
+
+                con.setDoOutput(true);
+                DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+                wr.writeBytes(urlParameters);
+                wr.flush();
+                wr.close();
+
+
+                int responseCode = con.getResponseCode();
+                if (responseCode == 403 || responseCode == 500 || responseCode == 504) {
+                    ModelAndView model = new ModelAndView("Errorpage");
+                    model.addObject("code", code);
+                    return model;
+                }
+                in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                respLine = in.readLine();
+                System.out.println("JSON response --->>>");
+                System.out.println(respLine);
+                jsonObject = new JSONObject(respLine);
+                submissionId = (String) jsonObject.get("id");
+
+                con.disconnect();
+            }catch (UnknownHostException e){
+                ModelAndView model = new ModelAndView("Errorpage");
+                model.addObject("code", code);
+                return model;
+            }finally {
+                if(con != null){
+                    con.disconnect();
+                }
             }
-            con.disconnect();
-            URL url = new URL(END_POINT + "/api/v3/submissions/"+submissionId + "?access_token=" + ACCESS_TOKEN+"&withOutput=true");
-            HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
 
-            // add request header
-            urlParameters = "withOutput=true";
-            httpURLConnection.setRequestMethod("GET");
-            httpURLConnection.setRequestProperty("ENCODING", "UTF-8");
-            httpURLConnection.setRequestProperty("User-Agent", "chrome");
-            httpURLConnection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-            httpURLConnection.setDoOutput(true);
-            /*DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
-            dataOutputStream.writeBytes(urlParameters);
-            dataOutputStream.flush();
-            dataOutputStream.close();*/
-            in = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
-            respLine = in.readLine();
-            System.out.println(respLine);
-//TODO check for status variable in api
 
-            jsonObject = new JSONObject(respLine);
-            int statusSubmission = jsonObject.getInt("status");
+
+
+
+            int statusSubmission = 0;
+            double timeElapsed = 0;
+            do{
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if(submissionId != null) {
+                    URL url = new URL(END_POINT + "/api/v3/submissions/" + submissionId + "?access_token=" + ACCESS_TOKEN + "&withOutput=true");
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+
+                    // add request header
+                    httpURLConnection.setRequestMethod("GET");
+                    httpURLConnection.setRequestProperty("ENCODING", "UTF-8");
+                    httpURLConnection.setRequestProperty("User-Agent", "chrome");
+                    httpURLConnection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+                    httpURLConnection.setDoOutput(true);
+
+
+
+                    int responseCode = httpURLConnection.getResponseCode();
+                    if (responseCode == 403 || responseCode == 500 || responseCode == 504) {
+                        ModelAndView model = new ModelAndView("Errorpage");
+                        model.addObject("code", code);
+                        return model;
+                    }
+                    in = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                    respLine = in.readLine();
+                    System.out.println(respLine);
+                    jsonObject = new JSONObject(respLine);
+                    statusSubmission = jsonObject.getInt("status");
+                }
+                timeElapsed += 2;
+            }while(statusSubmission != 0 || timeElapsed > 8 );
 
             int result = jsonObject.getInt("result");
 
-
-
-
+            if(timeElapsed > 8){
+                result = 10;
+            }
             System.out.println(outputpath); // output file path
             StringBuilder acutalOutput = new StringBuilder();
             BufferedReader file = new BufferedReader(new FileReader(outputpath));
@@ -952,8 +990,11 @@ public class AllController {
                 acutalOutput.append("\n");
             }
             ModelAndView modelAndView = null;
+
             if(result == 15) {
-                if(jsonObject.getString("output").equals(acutalOutput.toString())) {
+                if(ques.getTimeLimit() < jsonObject.getDouble("time")){
+                    modelAndView = getModelAndViewObject(httpSession, code, TIME_LIMIT_EXCEEDED, TIME_LIMIT_EXCEEDED, language);
+                }else if(jsonObject.getString("output").equals(acutalOutput.toString())) {
                     if(lang.equals("CPP")){
                         lang = "C";
                     }
@@ -968,6 +1009,8 @@ public class AllController {
                 modelAndView = getModelAndViewObject(httpSession, code, RUNTIME_ERROR, RUNTIME_ERROR, language);
             }else if(result == 11){
                 modelAndView = getModelAndViewObject(httpSession, code, COMPILATION_ERROR, COMPILATION_ERROR, language);
+            }else if(result == 10){
+                modelAndView = getModelAndViewObject(httpSession, code, UNKNOWN_ERROR, UNKNOWN_ERROR, language);
             }
             return modelAndView;
 
@@ -1127,9 +1170,10 @@ public class AllController {
     public static final String COMPILATION_ERROR = "COMPILATION ERROR";
     public static final String TIME_LIMIT_EXCEEDED = "TIME LIMIT EXCEEDED";
     public static final String RUNTIME_ERROR = "RUNTIME ERROR";
+    public static final String UNKNOWN_ERROR = "UNKNOWN ERROR";
 
 
-    public ModelAndView getModelAndViewObject(HttpSession httpSession, String code, String status, String verify, String language){
+    private ModelAndView getModelAndViewObject(HttpSession httpSession, String code, String status, String verify, String language){
 
         if (status.equals(COMPILED_SUCCESSFULLY)) {
 
@@ -1205,7 +1249,7 @@ public class AllController {
             model.addObject("lang", language);
             model.addObject("msg", "GO BACK AND SUBMIT AGAIN !!!");
             return model;
-        } else {
+        } else if(status.equals(UNKNOWN_ERROR)) {
             System.out.println("11");
             ModelAndView model = new ModelAndView("ResultPage");
             model.addObject("TeamName", (String) httpSession.getAttribute("SESSION_teamname"));

@@ -37,7 +37,7 @@
 			</ul>
 		</div>
 	</nav>
-	<div style="padding-left: 70px;" id="main">
+	<div style="padding:20px;width: 100%;display: flex;" id="main">
 		<p style="color: #0572d2;"></p>
 		<div id="ques" class="z-depth-1">
 			<div class="row">
@@ -90,17 +90,18 @@
 					<p>${SampleTestCase}</p>
 				</div>
 			</div>
-
+		</div>
+		<div id="editor-div" class="z-depth-1">
 			<b>CHOOSE LANGUAGE</b>
-			<form method="post" action="api">
+			<form id="sourceSubmitForm" method="post" action="api">
 				<select class="browser-default language" name="lang"
 					id="editor_select">
 					<option lang="c_cpp" value="C">C</option>
 					<option lang="c_cpp" value="CPP">C++</option>
 					<option lang="java" value="JAVA">Java</option>
 					<option lang="python" value="PYTHON">Python</option>
-				</select> <br> <input type="hidden" name="source" class="source"
-					value="" id="source"> <br>
+				</select><input type="hidden" name="source" class="source"
+					value="" id="source">
 
 				<div id="editor_lang">
 
@@ -118,35 +119,22 @@
 					// trigger extension
 
 					var lang = "c_cpp";
-					$(document)
-							.ready(
-									function() {
-										$("#editor_select")
-												.change(
-														function() {
-															$(
-																	"#editor_select option:selected")
-																	.each(
-																			function() {
-																				lang = $(
-																						this)
-																						.attr(
-																								'lang');
-																				console
-																						.log(lang);
-																				editor2.session
-																						.setMode("ace/mode/"
-																								+ lang);
-																				// v: Date.now();  
-																			});
-														});
-									});
+					$(document).ready(function() {
+						$("#editor_select").change(function(){
+						    $("#editor_select option:selected").each(function() {
+								lang = $(this).attr('lang');
+								console.log(lang);
+								editor2.session.setMode("ace/mode/"+lang);
+							// v: Date.now();
+							});
+						});
+					});
 
 					var editor2 = ace.edit("editor2");
-					editor2.setTheme("ace/theme/twilight");
+					editor2.setTheme("ace/theme/monokai");
 					editor2.session.setMode("ace/mode/html");
 					editor2.setAutoScrollEditorIntoView(true);
-					editor2.setOption("maxLines", 20);
+					editor2.setOption("maxLines", 50);
 					editor2.setOption("minLines", 16);
 					var source = $("#editor2").val();
 					$("#source").val('source');
@@ -157,7 +145,12 @@
 
 
 				<input type=hidden value="${quesid}" name=qid>
-				<button type="submit" class="waves-effect waves-light btn blue">Submit</button>
+				<button id="submitBtn" type="submit" class="waves-effect waves-light btn blue">Submit</button>
+				<div  id="running" style="display: none" >
+
+					<img class="responsive-img" src="/static/img/Spinner-1s-30px.gif">
+					<h6 style="font-size: 13px;font-weight: 500;color: #196ED2;">Running...</h6>
+				</div>
 
 
 			</form>
@@ -175,6 +168,15 @@
 	</footer>
 
 </body>
+<script>
+	$('#sourceSubmitForm').submit(function () {
+	    var submitBtn = $('#submitBtn');
+		$(submitBtn).prop('disabled', true);
+		$(submitBtn).hide();
+		$('#running').css('display', 'inline-flex');
+		return true;
+    });
+</script>
 <style type="text/css" media="screen">
 h1 {
 	font-size: 10xp;
@@ -185,7 +187,8 @@ h5 {
 }
 
 #editor_select {
-	border: 0px;
+	border: 1px solid;
+	width: 50%;
 }
 
 #editor_lang {
@@ -193,11 +196,11 @@ h5 {
 	border-radius: 4px;
 }
 
-#ques {
+#ques, #editor-div {
 	background: rgba(255, 255, 255, .4);
 	padding: 15px 25px 10px 25px;
 	border-radius: 3px;
-	width: 1000px;
+	width: 50%;
 }
 
 .language {

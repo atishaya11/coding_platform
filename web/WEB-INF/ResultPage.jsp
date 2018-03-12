@@ -46,7 +46,7 @@
 
 			<div id="editor_lang">
 
-				<textarea readonly id="editor2" name="code">${code}</textarea>
+				<textarea readonly="readonly" id="editor2" name="code">${code}</textarea>
 
 
 			</div>
@@ -58,15 +58,21 @@
 				src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.16.0/jquery.validate.min.js"></script>
 			<script>
 				// trigger extension
-
-				
+				var lang = 'c_cpp';
+				var language = '${lang}';
+				if(language === 'JAVA'){
+				    lang = 'java';
+				}else if(language === 'PYTHON'){
+				    lang = 'python';
+				}
 
 				var editor2 = ace.edit("editor2");
 				editor2.setTheme("ace/theme/twilight");
-				editor2.session.setMode("ace/mode/html");
+				editor2.session.setMode("ace/mode/"+lang);
 				editor2.setAutoScrollEditorIntoView(true);
-				editor2.setOption("maxLines", 16);
+				editor2.setOption("maxLines", 50);
 				editor2.setOption("minLines", 8);
+                editor2.setReadOnly(true);
 				var source = $("#editor2").val();
 				$("#source").val('source');
 				editor2.getSession().on("change", function() {
@@ -95,7 +101,14 @@
 		</div>
 	</footer>
 </body>
+<script>
+	$(document).read(function () {
+		$('.ace_text-input').prop('readonly', 'readonly');
+		document.getElementsByClassName('.ace_text-input')[0].readOnly = true;
+    });
+</script>
 <style type="text/css" media="screen">
+
 #editor {
 	
 }
